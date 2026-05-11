@@ -16,29 +16,29 @@ public class metaballFollow : MonoBehaviour
     }
     void Update()
     {
-        if (metaball.controller.spline.GetPointCount() != 0)
+        if (metaball.MetaballController.spline.GetPointCount() != 0)
         {
             if (!m_Follow)
             {
                 m_Follow = true;
                 for (int i = 0; i < metaball.NumberPoints; i++)
                 {
-                    controller.spline.InsertPointAt(i, metaball.controller.spline.GetPosition(i));
+                    controller.spline.InsertPointAt(i, metaball.MetaballController.spline.GetPosition(i));
                     controller.spline.SetTangentMode(i, ShapeTangentMode.Continuous);
 
-                    controller.spline.SetLeftTangent(i, metaball.tangentPositions[i]);
-                    controller.spline.SetRightTangent(i, -metaball.tangentPositions[i]);
-                    amplitudPoints = new List<float>(metaball.amplitudPoints);
+                    controller.spline.SetLeftTangent(i, metaball.TangentPositions[i]);
+                    controller.spline.SetRightTangent(i, -metaball.TangentPositions[i]);
+                    amplitudPoints = new List<float>(metaball.AmplitudPoints);
                 }
             }
 
             for (int i = 0; i < metaball.NumberPoints; i++)
             {
-                controller.spline.SetPosition(i, metaball.directionPoint[i] * amplitudPoints[i]);
+                controller.spline.SetPosition(i, metaball.DirectionPoint[i] * amplitudPoints[i]);
                 
-                amplitudPoints[i] = amplitudPoints[i] < metaball.amplitudPoints[i] ? metaball.amplitudPoints[i] : amplitudPoints[i];
+                amplitudPoints[i] = amplitudPoints[i] < metaball.AmplitudPoints[i] ? metaball.AmplitudPoints[i] : amplitudPoints[i];
 
-                amplitudPoints[i] = amplitudPoints[i] > metaball.amplitudPoints[i] ? Mathf.Lerp(amplitudPoints[i], metaball.Amplitud, velocidadSeguimiento * Time.deltaTime) : amplitudPoints[i];
+                amplitudPoints[i] = amplitudPoints[i] > metaball.AmplitudPoints[i] ? Mathf.Lerp(amplitudPoints[i], metaball.Amplitud, velocidadSeguimiento * Time.deltaTime) : amplitudPoints[i];
             }
         }
     }

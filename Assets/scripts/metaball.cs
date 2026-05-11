@@ -5,19 +5,23 @@ using UnityEngine.U2D;
 
 public class metaball : MonoBehaviour
 {
-    [HideInInspector] public SpriteShapeController controller;
+    #region variables
+    #region variablesExternas
+    private SpriteShapeController metaballController;
+    private Vector2[] directionPoint;
+    private float[] amplitudPoints;
+    private Vector2[] tangentPositions;
+    #endregion
+
     private AudioSource musica;
 
-    [HideInInspector] public Vector2[] directionPoint;
-    [HideInInspector] public float[] amplitudPoints;
-    [HideInInspector] public Vector2[] tangentPositions;
     private float[] objetivoPoints;
     private float[] spectrumData = new float[1024];
     private float time;
     private float baseAngle;
-
+    [Header("Config")]
+    [Header("Metaball Config")]
     public int NumberPoints = 16;
-    public int StartDataView = 900;
     public float VelocidadRotacion = 0.1f;
     public float VelocidadAmplitud = 20.0f;
     public float VelocidadAmplitudObjetivo = 1.0f;
@@ -25,17 +29,20 @@ public class metaball : MonoBehaviour
     public float TangentAmplitud = 0.5f;
     public float FuerzaMusica = 10.0f;
     public float FuerzaMaxima = 5.0f;
+    [Header("Music Config")]
+    public int StartDataView = 900;
     public float GetMusicEvery = 0.1f;
+    #endregion
 
-
-    void Start()
+    #region core
+    private void Start()
     {
-        controller = GetComponent<SpriteShapeController>();
+        metaballController = GetComponent<SpriteShapeController>();
         musica = GetComponent<AudioSource>();
         CreateCirclePoints();
     }
 
-    void Update()
+    private void Update()
     {
         RotateCircle();
 
@@ -43,13 +50,15 @@ public class metaball : MonoBehaviour
 
         MoveCircle();
     }
+    #endregion
 
-    void AddLocalTime()
+    private void AddLocalTime()
     {
         time += Time.deltaTime;
     }
 
-    void MoveCircle()
+    //anima la metaball siguiendo el espectro de audio
+    private void MoveCircle()
     {
         int progressSpectro = (spectrumData.Length - StartDataView) / NumberPoints;
 
@@ -72,23 +81,26 @@ public class metaball : MonoBehaviour
             {
                 objetivoPoints[i] = Mathf.Lerp(objetivoPoints[i], Amplitud, VelocidadAmplitudObjetivo * Time.deltaTime);
             }
-            
 
-            controller.spline.SetPosition(i, directionPoint[i] * amplitudPoints[i]);
+            metaballController.spline.SetPosition(i, directionPoint[i] * amplitudPoints[i]);
         }
         time = time >= GetMusicEvery ? 0.0f : time;
     }
 
-    void RotateCircle()
+    //rota el circulo para darle mas variedad
+    private void RotateCircle()
     {
         baseAngle += VelocidadRotacion * Time.deltaTime;
 
         transform.rotation = quaternion.RotateZ(baseAngle);
     }
 
-    void CreateCirclePoints()
+    /// <summary>
+    /// sirve para recalcular los datos del circulo para datos que solo se calculan una vez
+    /// </summary>
+    public void CreateCirclePoints()
     {
-        controller.spline.Clear();
+        metaballController.spline.Clear();
 
         float progresoPorIteracion = 360.0f / NumberPoints;
 
@@ -106,11 +118,11 @@ public class metaball : MonoBehaviour
             Vector2 pointAngle = new Vector2(MathF.Cos(radAngle) , -MathF.Sin(radAngle) );
             Vector3 positionTangent = new Vector3(MathF.Cos(tangentAnglerad) * TangentAmplitud, -MathF.Sin(tangentAnglerad) * TangentAmplitud, 0.0f);
 
-            controller.spline.InsertPointAt(i , new Vector3(pointAngle.x * Amplitud, pointAngle.y * Amplitud, 0.0f) );
-            controller.spline.SetTangentMode(i, ShapeTangentMode.Continuous);
+            metaballController.spline.InsertPointAt(i , new Vector3(pointAngle.x * Amplitud, pointAngle.y * Amplitud, 0.0f) );
+            metaballController.spline.SetTangentMode(i, ShapeTangentMode.Continuous);
 
-            controller.spline.SetLeftTangent(i, positionTangent);
-            controller.spline.SetRightTangent(i, -positionTangent);
+            metaballController.spline.SetLeftTangent(i, positionTangent);
+            metaballController.spline.SetRightTangent(i, -positionTangent);
 
             directionPoint[i] = pointAngle;
             amplitudPoints[i] = Amplitud;
@@ -118,6 +130,15 @@ public class metaball : MonoBehaviour
             tangentPositions[i] = positionTangent;
         }
 
-        controller.spline.isOpenEnded = false;
+        metaballController.spline.isOpenEnded = false;
     }
+
+    public Vector2[] TangentPositions => tangentPositions;
+
+    public float[] AmplitudPoints => amplitudPoints;
+
+    public Vector2[] DirectionPoint => directionPoint;
+
+    public SpriteShapeController MetaballController => metaballController;
+
 }
