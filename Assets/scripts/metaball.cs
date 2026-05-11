@@ -9,10 +9,10 @@ public class metaball : MonoBehaviour
     [HideInInspector] public SpriteShapeController controller;
     private AudioSource musica;
 
-    [HideInInspector] public List<Vector2> directionPoint = new List<Vector2>();
-    [HideInInspector] public List<float> amplitudPoints = new List<float>();
-    [HideInInspector] public List<Vector2> tangentPositions = new List<Vector2>();
-    private List<float> objetivoPoints = new List<float>();
+    [HideInInspector] public Vector2[] directionPoint;
+    [HideInInspector] public float[] amplitudPoints;
+    [HideInInspector] public Vector2[] tangentPositions;
+    private float[] objetivoPoints;
     private float[] spectrumData = new float[1024];
     private float time;
     private float baseAngle;
@@ -21,6 +21,7 @@ public class metaball : MonoBehaviour
     public int StartDataView = 900;
     public float VelocidadRotacion = 0.1f;
     public float VelocidadAmplitud = 20.0f;
+    public float VelocidadAmplitudObjetivo = 1.0f;
     public float Amplitud = 3.0f;
     public float TangentAmplitud = 0.5f;
     public float FuerzaMusica = 10.0f;
@@ -60,16 +61,21 @@ public class metaball : MonoBehaviour
 
         for (int i = 0; i < NumberPoints; i++)
         {
-            controller.spline.SetPosition(i, directionPoint[i] * amplitudPoints[i]);
             amplitudPoints[i] = Mathf.Lerp(amplitudPoints[i], objetivoPoints[i], VelocidadAmplitud * Time.deltaTime);
+            amplitudPoints[i] = amplitudPoints[i] <= Amplitud ? Amplitud : amplitudPoints[i];
 
             if (time >= GetMusicEvery)
             {
-                objetivoPoints[i] = Amplitud + spectrumData[(progressSpectro) * i] * FuerzaMusica;
+                objetivoPoints[i] = Amplitud + spectrumData[progressSpectro * i] * FuerzaMusica;
                 objetivoPoints[i] = objetivoPoints[i] >= FuerzaMaxima ? FuerzaMaxima : objetivoPoints[i];
             }
+            else
+            {
+                objetivoPoints[i] = Mathf.Lerp(objetivoPoints[i], Amplitud, VelocidadAmplitudObjetivo * Time.deltaTime);
+            }
+            
 
-            amplitudPoints[i] = amplitudPoints[i] <= Amplitud ? Amplitud : amplitudPoints[i];
+            controller.spline.SetPosition(i, directionPoint[i] * amplitudPoints[i]);
         }
         time = time >= GetMusicEvery ? 0.0f : time;
     }
@@ -87,6 +93,11 @@ public class metaball : MonoBehaviour
 
         float progresoPorIteracion = 360.0f / NumberPoints;
 
+        tangentPositions = new Vector2[NumberPoints];
+        directionPoint = new Vector2[NumberPoints];     
+        amplitudPoints = new float[NumberPoints];
+        objetivoPoints = new float[NumberPoints];
+
         for (int i = 0; i < NumberPoints; i++)
         {
             float angle = progresoPorIteracion * i;
@@ -102,10 +113,10 @@ public class metaball : MonoBehaviour
             controller.spline.SetLeftTangent(i, positionTangent);
             controller.spline.SetRightTangent(i, -positionTangent);
 
-            directionPoint.Add(pointAngle);
-            amplitudPoints.Add(Amplitud);
-            objetivoPoints.Add(Amplitud);
-            tangentPositions.Add(positionTangent);
+            directionPoint[i] = pointAngle;
+            amplitudPoints[i] = Amplitud;
+            objetivoPoints[i] = Amplitud;
+            tangentPositions[i] = positionTangent;
         }
 
         controller.spline.isOpenEnded = false;
